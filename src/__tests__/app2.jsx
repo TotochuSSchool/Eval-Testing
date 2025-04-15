@@ -3,7 +3,7 @@ import {render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../app'
 
-test('Cas passant - étapes 1 - 32', async () => {
+test('Cas non passant - étapes 1 - 34', async () => {
   // 1
   render(<App />)
 
@@ -31,15 +31,14 @@ test('Cas passant - étapes 1 - 32', async () => {
   expect(screen.getByLabelText(/Favorite food/i)).toBeInTheDocument()
 
   // 9
-  userEvent.type(screen.getByLabelText(/Favorite food/i), 'Les pâtes')
-  expect(screen.getByLabelText(/Favorite food/i).value).toBe('Les pâtes')
+  userEvent.clear(screen.getByLabelText(/Favorite food/i))
+  expect(screen.getByLabelText(/Favorite food/i).value).toBe('')
 
   // 10
-  const nextLink = screen.getByRole('link', {name: /Next/i})
-  expect(nextLink).toBeInTheDocument()
+  expect(screen.getByRole('link', {name: /Next/i})).toBeInTheDocument()
 
   // 11
-  userEvent.click(nextLink)
+  userEvent.click(screen.getByRole('link', {name: /Next/i}))
 
   // 12
   expect(await screen.findByText(/Page 2/i)).toBeInTheDocument()
@@ -51,12 +50,11 @@ test('Cas passant - étapes 1 - 32', async () => {
   expect(screen.getByRole('link', {name: /Go back/i})).toBeInTheDocument()
 
   // 15
-  const drinkInput = screen.getByLabelText(/Favorite drink/i)
-  expect(drinkInput).toBeInTheDocument()
+  expect(screen.getByLabelText(/Favorite drink/i)).toBeInTheDocument()
 
   // 16
-  userEvent.type(drinkInput, 'Bière')
-  expect(drinkInput.value).toBe('Bière')
+  userEvent.type(screen.getByLabelText(/Favorite drink/i), 'Bière')
+  expect(screen.getByLabelText(/Favorite drink/i).value).toBe('Bière')
 
   // 17
   expect(screen.getByRole('link', {name: /Review/i})).toBeInTheDocument()
@@ -76,10 +74,20 @@ test('Cas passant - étapes 1 - 32', async () => {
   expect(screen.getByText(/Please confirm your choices/i)).toBeInTheDocument()
 
   // 22
-  expect(screen.getByText(/Les pâtes/i)).toBeInTheDocument()
+  const foodSpan = screen.getByText(
+    (content, element) =>
+      element.tagName.toLowerCase() === 'span' &&
+      element.getAttribute('aria-labelledby') === 'food-label',
+  )
+  expect(foodSpan.textContent).toBe('')
 
   // 23
-  expect(screen.getByText(/Bière/i)).toBeInTheDocument()
+  const drinkSpan = screen.getByText(
+    (content, element) =>
+      element.tagName.toLowerCase() === 'span' &&
+      element.getAttribute('aria-labelledby') === 'drink-label',
+  )
+  expect(drinkSpan.textContent).toBe('Bière')
 
   // 24
   expect(screen.getByRole('link', {name: /Go back/i})).toBeInTheDocument()
@@ -92,21 +100,29 @@ test('Cas passant - étapes 1 - 32', async () => {
 
   // 27
   expect(
-    await screen.findByRole('heading', {name: /Congrats\. You did it\./i}),
+    await screen.findByText(/Oh no. There was an error\./i),
   ).toBeInTheDocument()
 
   // 28
-  expect(screen.getByText(/Congrats\. You did it\./i)).toBeInTheDocument()
+  expect(screen.getByText(/Oh no. There was an error\./i)).toBeInTheDocument()
 
   // 29
-  expect(screen.getByRole('link', {name: /Go home/i})).toBeInTheDocument()
+  expect(
+    screen.getByText(/les champs food et drink sont obligatoires/i),
+  ).toBeInTheDocument()
 
   // 30
-  userEvent.click(screen.getByRole('link', {name: /Go home/i}))
+  expect(screen.getByRole('link', {name: /Go home/i})).toBeInTheDocument()
 
   // 31
-  expect(await screen.findByText(/Welcome home/i)).toBeInTheDocument()
+  expect(screen.getByRole('link', {name: /Try again/i})).toBeInTheDocument()
 
   // 32
-  expect(screen.getByText(/Welcome home/i)).toBeInTheDocument()
+  userEvent.click(screen.getByRole('link', {name: /Try again/i}))
+
+  // 33
+  expect(await screen.findByText(/Page 1/i)).toBeInTheDocument()
+
+  // 34
+  expect(screen.getByRole('heading', {name: /Page 1/i})).toBeInTheDocument()
 })
